@@ -4,3 +4,4 @@ capture/
 out/work-*/
 *.log
 .DS_Store
+assets/audio/bgm.wav
