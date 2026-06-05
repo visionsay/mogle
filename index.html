@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+
+    <!-- GSAP 3 (free, commercial use OK) — vendored locally for deterministic offline render -->
+    <script src="assets/lib/gsap.min.js"></script>
+
+    <style>
+      /* Pretendard Variable — vendored locally (SIL Open Font License 1.1, commercial use OK) */
+      @font-face {
+        font-family: "Pretendard";
+        font-weight: 45 920;
+        font-style: normal;
+        font-display: block;
+        src: url("assets/fonts/PretendardVariable.woff2") format("woff2-variations");
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --ink: #0e1116;
+        --ink-2: #141922;
+        --paper: #f4efe6;
+        --paper-dim: #c9c2b4;
+        --accent: #ff5a3c;
+        --gold: #e8b65a;
+        --muted: #7d8798;
+        --line: rgba(244, 239, 230, 0.14);
+        --font: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+          system-ui, sans-serif;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ink);
+        font-family: "Pretendard", sans-serif;
+        color: var(--paper);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        background:
+          radial-gradient(120% 90% at 18% 12%, #1a212e 0%, rgba(26, 33, 46, 0) 55%),
+          radial-gradient(120% 90% at 86% 90%, #1d161a 0%, rgba(29, 22, 26, 0) 50%),
+          var(--ink);
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 140px 180px;
+      }
+
+      /* ---------- shared type ---------- */
+      .kicker {
+        font-size: 26px;
+        letter-spacing: 0.42em;
+        font-weight: 600;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
+      .mask {
+        overflow: hidden;
+        display: block;
+      }
+      .mask > * {
+        display: block;
+        will-change: transform;
+      }
+      .display {
+        font-weight: 800;
+        line-height: 1.04;
+        letter-spacing: -0.02em;
+      }
+      .serif-accent {
+        color: var(--accent);
+      }
+      .gold {
+        color: var(--gold);
+      }
+      .dim {
+        color: var(--paper-dim);
+      }
+
+      /* ---------- decorative ---------- */
+      .rule {
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), rgba(255, 90, 60, 0));
+        transform-origin: left center;
+      }
+      .tick {
+        position: absolute;
+        font-size: 22px;
+        letter-spacing: 0.3em;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      /* ---------- scene B ---------- */
+      .stmt {
+        font-size: 96px;
+      }
+
+      /* ---------- scene C process ---------- */
+      .proc-head {
+        position: absolute;
+        top: 120px;
+        left: 180px;
+        right: 180px;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+      }
+      .timeline-wrap {
+        position: absolute;
+        left: 180px;
+        right: 180px;
+        top: 300px;
+      }
+      .timeline-base {
+        position: absolute;
+        top: 7px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--line);
+      }
+      .timeline-fill {
+        position: absolute;
+        top: 7px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--gold), var(--accent));
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+      .node {
+        position: absolute;
+        top: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--ink);
+        border: 2px solid var(--accent);
+        transform: translateX(-50%) scale(0);
+      }
+      .cards {
+        position: absolute;
+        left: 180px;
+        right: 180px;
+        top: 400px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 36px;
+      }
+      .card {
+        position: relative;
+        padding-top: 38px;
+        border-top: 2px solid var(--line);
+      }
+      .card .wk {
+        font-size: 22px;
+        letter-spacing: 0.32em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .card .no {
+        font-size: 128px;
+        font-weight: 800;
+        line-height: 0.9;
+        letter-spacing: -0.04em;
+        margin: 6px 0 26px;
+        background: linear-gradient(180deg, var(--paper), var(--paper-dim));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .card .ct {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        letter-spacing: -0.01em;
+      }
+      .card .cd {
+        font-size: 24px;
+        line-height: 1.5;
+        color: var(--paper-dim);
+        font-weight: 400;
+      }
+
+      /* ---------- scene D stats ---------- */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 60px;
+        align-items: end;
+      }
+      .stat .v {
+        font-size: 180px;
+        font-weight: 800;
+        line-height: 0.9;
+        letter-spacing: -0.04em;
+      }
+      .stat .v .u {
+        font-size: 64px;
+        font-weight: 700;
+        margin-left: 8px;
+        color: var(--paper-dim);
+      }
+      .stat .l {
+        margin-top: 22px;
+        font-size: 28px;
+        color: var(--paper-dim);
+        font-weight: 500;
+        letter-spacing: 0.01em;
+      }
+      .stat .bar {
+        margin-top: 28px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent), var(--gold));
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+
+      /* ---------- scene E outro ---------- */
+      .outro {
+        align-items: center;
+        text-align: center;
+      }
+      .brand {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 22px;
+        margin-top: 56px;
+      }
+      .brand .dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .brand .name {
+        font-size: 48px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+      }
+      .brand .name .sub {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .shimmer {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          100deg,
+          rgba(255, 255, 255, 0) 35%,
+          rgba(255, 255, 255, 0.55) 50%,
+          rgba(255, 255, 255, 0) 65%
+        );
+        mix-blend-mode: screen;
+        transform: translateX(-120%);
+        pointer-events: none;
+      }
+
+      /* ---------- overlays ---------- */
+      .vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          120% 120% at 50% 50%,
+          rgba(0, 0, 0, 0) 55%,
+          rgba(0, 0, 0, 0.45) 100%
+        );
+      }
+      .grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.07;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      }
+    </style>
+  </head>
+
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="36"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- ===================== SCENE A · COLD OPEN (0–5) ===================== -->
+      <section
+        class="scene clip"
+        id="sceneA"
+        data-start="0"
+        data-duration="5.2"
+        data-track-index="10"
+      >
+        <div class="kicker" id="a-kicker">AI 전자책 출간 워크플로우</div>
+        <div class="rule" id="a-rule" style="width: 280px; margin: 34px 0 46px"></div>
+        <h1 class="display" style="font-size: 124px">
+          <span class="mask"><span id="a1">지식이 책이 되는</span></span>
+          <span class="mask"
+            ><span id="a2">가장 <span class="serif-accent">빠른 길</span>.</span></span
+          >
+        </h1>
+        <div class="tick" id="a-tick" style="bottom: 130px; left: 180px">
+          MOGLE · AI PUBLISHING STUDIO
+        </div>
+      </section>
+
+      <!-- ===================== SCENE B · PROMISE (5–11) ===================== -->
+      <section
+        class="scene clip"
+        id="sceneB"
+        data-start="5"
+        data-duration="6.4"
+        data-track-index="11"
+      >
+        <h2 class="display stmt">
+          <span class="mask"><span id="b1">아이디어는 누구나,</span></span>
+          <span class="mask"><span id="b2" class="dim">출간은 소수만 했습니다.</span></span>
+        </h2>
+        <div
+          class="display stmt"
+          id="b3"
+          style="margin-top: 28px; font-size: 104px; opacity: 0"
+        >
+          이제, <span class="serif-accent">단 4주</span>면 충분합니다.
+        </div>
+      </section>
+
+      <!-- ===================== SCENE C · 4-WEEK PROCESS (11–25.5) ===================== -->
+      <section
+        class="scene clip"
+        id="sceneC"
+        data-start="11"
+        data-duration="14.6"
+        data-track-index="12"
+        style="padding: 0"
+      >
+        <div class="proc-head">
+          <div class="display" id="c-title" style="font-size: 64px">
+            출간까지, <span class="gold">4주의 설계</span>
+          </div>
+          <div class="kicker" id="c-kick" style="color: var(--muted)">THE 4-WEEK PROCESS</div>
+        </div>
+
+        <div class="timeline-wrap">
+          <div class="timeline-base"></div>
+          <div class="timeline-fill" id="c-fill"></div>
+          <div class="node" id="c-n1" style="left: 12.5%"></div>
+          <div class="node" id="c-n2" style="left: 37.5%"></div>
+          <div class="node" id="c-n3" style="left: 62.5%"></div>
+          <div class="node" id="c-n4" style="left: 87.5%"></div>
+        </div>
+
+        <div class="cards">
+          <div class="card" id="c-c1">
+            <div class="wk">WEEK 01</div>
+            <div class="no">01</div>
+            <div class="ct">주제 &amp; 목차 설계</div>
+            <div class="cd">ChatGPT·Claude와 콘셉트를 잡고, 팔리는 목차를 확정합니다.</div>
+          </div>
+          <div class="card" id="c-c2">
+            <div class="wk">WEEK 02</div>
+            <div class="no">02</div>
+            <div class="ct">AI 공동집필</div>
+            <div class="cd">매일 한 챕터씩. 초고를 빠르게 완성하고 흐름을 다듬습니다.</div>
+          </div>
+          <div class="card" id="c-c3">
+            <div class="wk">WEEK 03</div>
+            <div class="no">03</div>
+            <div class="ct">편집 &amp; 표지</div>
+            <div class="cd">교정·윤문과 표지 디자인까지, 상품성 있는 완성도로.</div>
+          </div>
+          <div class="card" id="c-c4">
+            <div class="wk">WEEK 04</div>
+            <div class="no">04</div>
+            <div class="ct">출간 &amp; 판매</div>
+            <div class="cd">교보문고·예스24·리디에 등록하고 독자를 만납니다.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SCENE D · PROOF (25.5–30.5) ===================== -->
+      <section
+        class="scene clip"
+        id="sceneD"
+        data-start="25.5"
+        data-duration="5.2"
+        data-track-index="13"
+      >
+        <div class="kicker" id="d-kick" style="margin-bottom: 56px">왜 지금인가</div>
+        <div class="stats">
+          <div class="stat" id="d-s1">
+            <div class="v"><span class="counter" data-to="4">0</span><span class="u">주</span></div>
+            <div class="l">기획부터 출간까지</div>
+            <div class="bar"></div>
+          </div>
+          <div class="stat" id="d-s2">
+            <div class="v"><span class="counter" data-to="3">0</span><span class="u">대 서점</span></div>
+            <div class="l">교보·예스24·리디 동시 입점</div>
+            <div class="bar"></div>
+          </div>
+          <div class="stat" id="d-s3">
+            <div class="v"><span class="counter" data-to="100">0</span><span class="u">%</span></div>
+            <div class="l">내 이름, 내 저작권</div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SCENE E · CTA / OUTRO (30.5–34) ===================== -->
+      <section
+        class="scene outro clip"
+        id="sceneE"
+        data-start="30.5"
+        data-duration="5.5"
+        data-track-index="14"
+      >
+        <div class="kicker" id="e-kick" style="align-self: center">오늘 시작하면, 한 달 뒤 저자</div>
+        <h2 class="display" id="e-h" style="font-size: 110px; margin-top: 26px">
+          첫 <span class="serif-accent">문장</span>을 시작하세요.
+        </h2>
+        <div class="brand" id="e-brand">
+          <span class="dot"></span>
+          <span class="name">MOGLE <span class="sub">· AI Publishing</span></span>
+          <span class="shimmer" id="e-shimmer"></span>
+        </div>
+      </section>
+
+      <!-- overlays -->
+      <div
+        id="vignette"
+        class="vignette clip"
+        data-start="0"
+        data-duration="36"
+        data-track-index="40"
+      ></div>
+      <div id="grain" class="grain clip" data-start="0" data-duration="36" data-track-index="41"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const E = "power3.out";
+
+      /* ---------- helpers ---------- */
+      function riseIn(target, at, stagger) {
+        tl.from(
+          target,
+          { yPercent: 115, opacity: 0, duration: 0.9, ease: E, stagger: stagger || 0 },
+          at
+        );
+      }
+
+      /* ============ SCENE A (0–5.2) ============ */
+      tl.from("#a-kicker", { opacity: 0, y: 18, duration: 0.7, ease: E }, 0.15);
+      tl.from("#a-rule", { scaleX: 0, duration: 0.8, ease: "power2.inOut" }, 0.35);
+      riseIn("#a1", 0.55);
+      riseIn("#a2", 0.78);
+      tl.from("#a-tick", { opacity: 0, x: -16, duration: 0.7, ease: E }, 1.2);
+      // exit
+      tl.to("#sceneA", { opacity: 0, y: -40, duration: 0.6, ease: "power2.in" }, 4.7);
+
+      /* ============ SCENE B (5–11.4) ============ */
+      riseIn("#b1", 5.25);
+      riseIn("#b2", 5.45);
+      tl.to("#b1", { opacity: 0.25, duration: 0.5, ease: E }, 8.3);
+      tl.to("#b2", { opacity: 0.25, duration: 0.5, ease: E }, 8.3);
+      tl.fromTo(
+        "#b3",
+        { opacity: 0, y: 40, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: "power4.out" },
+        8.45
+      );
+      tl.to("#sceneB", { opacity: 0, duration: 0.55, ease: "power2.in" }, 10.85);
+
+      /* ============ SCENE C (11–25.6) ============ */
+      tl.from("#c-title", { opacity: 0, y: 24, duration: 0.7, ease: E }, 11.2);
+      tl.from("#c-kick", { opacity: 0, x: 24, duration: 0.7, ease: E }, 11.3);
+      tl.to("#c-fill", { scaleX: 1, duration: 4.4, ease: "power1.inOut" }, 11.6);
+
+      const nodes = ["#c-n1", "#c-n2", "#c-n3", "#c-n4"];
+      const cards = ["#c-c1", "#c-c2", "#c-c3", "#c-c4"];
+      nodes.forEach(function (n, i) {
+        const at = 11.7 + i * 1.05;
+        tl.to(n, { scale: 1, duration: 0.45, ease: "back.out(2)" }, at);
+        tl.from(
+          cards[i],
+          { opacity: 0, y: 56, duration: 0.85, ease: E },
+          at + 0.05
+        );
+        tl.from(
+          cards[i] + " .no",
+          { opacity: 0, y: 30, scale: 0.92, duration: 0.8, ease: "power4.out" },
+          at + 0.12
+        );
+      });
+      tl.to("#sceneC", { opacity: 0, y: -30, duration: 0.6, ease: "power2.in" }, 25.0);
+
+      /* ============ SCENE D (25.5–30.7) ============ */
+      tl.from("#d-kick", { opacity: 0, y: 18, duration: 0.6, ease: E }, 25.65);
+      const stats = ["#d-s1", "#d-s2", "#d-s3"];
+      stats.forEach(function (s, i) {
+        const at = 25.85 + i * 0.28;
+        tl.from(s, { opacity: 0, y: 50, duration: 0.8, ease: E }, at);
+        tl.to(s + " .bar", { scaleX: 1, duration: 0.9, ease: "power2.out" }, at + 0.15);
+      });
+      // counters
+      document.querySelectorAll("#sceneD .counter").forEach(function (el, i) {
+        const to = parseInt(el.getAttribute("data-to"), 10);
+        const proxy = { v: 0 };
+        tl.to(
+          proxy,
+          {
+            v: to,
+            duration: 1.3,
+            ease: "power2.out",
+            onUpdate: function () {
+              el.textContent = Math.round(proxy.v);
+            },
+          },
+          25.95 + i * 0.28
+        );
+      });
+      tl.to("#sceneD", { opacity: 0, duration: 0.5, ease: "power2.in" }, 30.2);
+
+      /* ============ SCENE E (30.5–34) ============ */
+      tl.from("#e-kick", { opacity: 0, y: 18, duration: 0.6, ease: E }, 30.7);
+      tl.fromTo(
+        "#e-h",
+        { opacity: 0, y: 44, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: "power4.out" },
+        30.85
+      );
+      tl.from("#e-brand", { opacity: 0, y: 26, duration: 0.7, ease: E }, 31.5);
+      tl.fromTo(
+        "#e-shimmer",
+        { xPercent: -120 },
+        { xPercent: 120, duration: 1.1, ease: "power2.inOut" },
+        32.0
+      );
+      // extended outro hold (+2s): subtle end-card breath + a second shimmer pass
+      tl.to("#sceneE", { scale: 1.015, duration: 3.0, ease: "sine.inOut" }, 33.0);
+      tl.fromTo(
+        "#e-shimmer",
+        { xPercent: -120 },
+        { xPercent: 120, duration: 1.2, ease: "power2.inOut" },
+        34.7
+      );
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
