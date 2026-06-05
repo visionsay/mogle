@@ -73,6 +73,10 @@ npx hyperframes render --quality high --fps 30 --output out/promo.mp4
 
 전체에 필름 그레인 + 비네팅 오버레이를 깔아 편집 디자인 톤을 유지합니다.
 
+**BGM**: 경쾌한 4-on-the-floor 그루브 위에, **텍스트가 등장하는 정확한 순간(히어로·4주 카드·
+데이터·CTA)마다 멜로디 액센트가 떨어지도록** 비트를 맞춘 100% 오리지널 트랙입니다.
+`tools/make_bgm.py`로 절차적으로 생성(결정론적)하고 -16 LUFS로 라우드니스 정규화했습니다.
+
 ---
 
 ## 5. 라이선스 — 상업적 이용 가능
@@ -81,10 +85,12 @@ npx hyperframes render --quality high --fps 30 --output out/promo.mp4
 
 - **Pretendard** 폰트 — SIL Open Font License 1.1 (상업 사용 가능) · `assets/fonts/`에 로컬 내장
 - **GSAP 3** — 무료(상업 사용 가능) · `assets/lib/`에 로컬 내장
+- **BGM** — `tools/make_bgm.py`로 직접 합성한 100% 오리지널 트랙 (`assets/audio/bgm.mp3`)
 - 디자인·카피·모션 — 100% 오리지널, 제3자 음원/이미지 미사용
 
-> 배경 음악이나 내레이션(TTS)을 넣고 싶다면 **로열티 프리** 음원 또는 HyperFrames의
-> `/hyperframes-media` 스킬(Kokoro TTS)을 사용하세요. 저작권 있는 음원은 넣지 마세요.
+> 내레이션(TTS)을 추가하려면 HyperFrames의 `/hyperframes-media` 스킬(Kokoro TTS)을 쓰고,
+> BGM을 바꾸려면 `tools/make_bgm.py`의 히트포인트/코드 진행을 수정해 재생성하세요.
+> 외부 음원을 쓸 경우 반드시 **로열티 프리/상업 라이선스**만 사용하세요.
 
 ---
 
@@ -93,6 +99,8 @@ npx hyperframes render --quality high --fps 30 --output out/promo.mp4
 index.html              # 메인 컴포지션 (루트 타임라인)
 assets/fonts/           # Pretendard 가변 폰트 (woff2)
 assets/lib/             # GSAP (vendored)
+assets/audio/           # 오리지널 BGM (bgm.mp3)
+tools/make_bgm.py       # BGM 생성기 (절차적, 결정론적)
 out/promo.mp4           # 렌더링 결과물
 docs/frames/            # 대표 프레임 미리보기 PNG
 meta.json               # 프로젝트 메타데이터

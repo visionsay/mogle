@@ -217,6 +217,24 @@ Confirm duration/fps: `ffprobe -v error -show_entries format=duration -show_entr
 
 - **Pretendard** = SIL OFL 1.1 ✓ commercial · **GSAP 3** = free ✓ commercial — both vendored.
 - Design, copy, motion = 100% original. **No third-party music/images.**
-- For VO/BGM use royalty-free audio or the `/hyperframes-media` skill (Kokoro TTS); add as a
-  `<audio class="clip" data-start data-duration data-track-index data-volume>` element. Never
-  add copyrighted tracks.
+- For VO use the `/hyperframes-media` skill (Kokoro TTS). Never add copyrighted tracks.
+
+### Beat-synced original BGM (the recipe used here)
+
+For a commercial-safe track whose beat lands on the text reveals, **synthesize it** rather
+than sourcing it (see `tools/make_bgm.py`). The approach:
+
+1. List the text-reveal timestamps from the GSAP timeline (hero, each card, stats, CTA…).
+2. Lay a steady upbeat bed (four-on-the-floor kick + backbeat snare + 8th hats + a
+   I–V–vi–IV bass in a bright key) that builds per scene.
+3. Drop a **melodic hitpoint** (pluck/stab + impact) at each reveal time — e.g. the 4
+   process cards become an ascending C5→E5→G5→C6 run. The bed gives "upbeat"; the
+   hitpoints give "in sync."
+4. Keep it deterministic (`np.random.default_rng(seed)`), normalize to **-16 LUFS**
+   (`ffmpeg -af loudnorm=I=-16:TP=-1.5`), export mp3.
+
+Mount it (the `<audio>` **must have an `id`** or it renders silent):
+```html
+<audio id="bgm" class="clip" data-start="0" data-duration="36"
+       data-track-index="50" data-volume="0.9" src="assets/audio/bgm.mp3"></audio>
+```
